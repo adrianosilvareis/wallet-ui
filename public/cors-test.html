@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste CORS - Wallet API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste CORS - Wallet API</h1>
+        <p>Esta página testa se o CORS está configurado corretamente para <strong>http://localhost:5174</strong></p>
+        
+        <div>
+            <button onclick="testWalletBalance()">Testar Saldo da Carteira</button>
+            <button onclick="testHealthCheck()">Testar Health Check</button>
+            <button onclick="testBusinessRules()">Testar Regras de Negócio</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        
+        function showResult(success, data, title = 'Resultado') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            
+            let html = `<h3>${title}</h3>`;
+            
+            if (success) {
+                html += `<p>✅ <strong>Sucesso!</strong> CORS está funcionando corretamente.</p>`;
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                html += `<p>❌ <strong>Erro!</strong> Problema com CORS ou API.</p>`;
+                html += `<pre>${data}</pre>`;
+            }
+            
+            resultDiv.innerHTML = html;
+        }
+        
+        async function testWalletBalance() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/wallet/balance`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(true, data, 'Saldo da Carteira');
+            } catch (error) {
+                showResult(false, error.message, 'Erro ao buscar saldo');
+            }
+        }
+        
+        async function testHealthCheck() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(true, data, 'Health Check');
+            } catch (error) {
+                showResult(false, error.message, 'Erro no Health Check');
+            }
+        }
+        
+        async function testBusinessRules() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/config/business`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showResult(true, data, 'Regras de Negócio');
+            } catch (error) {
+                showResult(false, error.message, 'Erro ao buscar regras de negócio');
+            }
+        }
+        
+        // Testar automaticamente ao carregar a página
+        window.addEventListener('load', () => {
+            console.log('🚀 Página carregada! Testando CORS...');
+            testWalletBalance();
+        });
+    </script>
+</body>
+</html>
